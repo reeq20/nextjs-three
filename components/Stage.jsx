@@ -19,7 +19,13 @@ import fragment from "../public/glsl/boxShader_fs.glsl";
 //     });
 //   });
 // };
+const Animate = (renderer, scene, camera, mesh) => {
+  renderer.render(scene, camera);
 
+  requestAnimationFrame(() => {
+    Animate(renderer, scene, camera, mesh);
+  });
+};
 const Stage = () => {
   const width = window.innerWidth;
   const height = window.innerHeight;
@@ -30,7 +36,7 @@ const Stage = () => {
     }
 
     const scene = new Scene();
-    const camera = new PerspectiveCamera(45, width / height, 0.1, 1000);
+    const camera = new PerspectiveCamera(45, width / height, 0.01, 1000);
     const renderer = new WebGLRenderer({
       canvas: canvas,
       antialias: true,
@@ -48,10 +54,14 @@ const Stage = () => {
     scene.add(camera);
     camera.position.z = 0.1;
 
+    mesh.scale.x = width / height;
+
     renderer.setSize(width, height);
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    renderer.render(scene, camera);
+    requestAnimationFrame(() => {
+      Animate(renderer, scene, camera, mesh);
+    });
   };
   return (
     <>
