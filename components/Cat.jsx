@@ -1,31 +1,25 @@
 import * as React from "react";
 import {
-  AmbientLight,
-  BoxBufferGeometry,
-  DirectionalLight,
-  Group,
+  DoubleSide,
   Mesh,
   Object3D,
   PerspectiveCamera,
   PlaneBufferGeometry,
-  RawShaderMaterial,
   RepeatWrapping,
   Scene,
   ShaderMaterial,
-  SphereBufferGeometry,
   WebGLRenderer,
 } from "three";
-import vertex from "../public/glsl/boxShader_vs.glsl";
-import fragment from "../public/glsl/boxShader_fs.glsl";
+import vertex from "../public/glsl/texPictureShader_vs.glsl";
+import fragment from "../public/glsl/texPictureShader_fs.glsl";
 import loadTexture from "../utils/loadTexture";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass";
 
-class ShaderController extends React.Component {
+class Cat extends React.Component {
   constructor(props) {
     super(props);
-    // this.onLoadCanvas = React.createRef();
   }
 
   onLoadCanvas = async (canvas) => {
@@ -42,7 +36,7 @@ class ShaderController extends React.Component {
       antialias: true,
     });
 
-    const texImage = await loadTexture("./images/texture1024.jpg");
+    const texImage = await loadTexture("./images/tex_cat.jpeg");
     texImage.wrapS = RepeatWrapping;
     texImage.wrapT = RepeatWrapping;
     texImage.needsUpdate = true;
@@ -51,24 +45,26 @@ class ShaderController extends React.Component {
     this.scene.add(this.object);
 
     // const screen = new SphereBufferGeometry(1, 128, 128, 1);
-    const screen = new PlaneBufferGeometry(2, 2, 1, 1);
+    const screen = new PlaneBufferGeometry(1.5, 1, 1, 1);
     // const screen = new BoxBufferGeometry(1, 1, 1, 1, 1);
 
     this.material = new ShaderMaterial({
       // wireframe: true,
+      side: DoubleSide,
       uniforms: {
         textureImage: { value: texImage },
         uvOffset: { value: 0 },
+        uTime: { value: 0 },
       },
       vertexShader: vertex,
       fragmentShader: fragment,
     });
 
-    const mesh = new Mesh(screen, this.material);
+    this.mesh = new Mesh(screen, this.material);
     // mesh.scale.x = mesh.scale.y = mesh.scale.z = 0.4;
-    this.object.add(mesh);
+    this.object.add(this.mesh);
     this.scene.add(this.camera);
-    this.camera.position.z = 1;
+    this.camera.position.z = 4;
 
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
@@ -91,20 +87,29 @@ class ShaderController extends React.Component {
       this.composer.setSize(window.innerWidth, window.innerHeight);
     };
     window.addEventListener("resize", onWindowResize, false);
-    requestAnimationFrame((t) => {
-      this.animate(t);
+
+    const t0 = performance.now();
+    requestAnimationFrame((t1) => {
+      this.animate(t1, t0);
     });
   };
 
-  animate(t) {
-    requestAnimationFrame((t) => {
-      this.animate(t);
+  animate(t1, t0) {
+    requestAnimationFrame((t1) => {
+      this.animate(t1, t0);
     });
-    // this.object.rotation.x += 0.005;
-    // this.object.rotation.y += 0.01;
-    // console.log(Math.sin(((2 * Math.PI) / 100) * t));
-    // this.material.uniforms.uvOffset.value += Math.sin(t) / degree;
-    // this.renderer.render(this.scene, this.camera);
+
+    const dur = 10000;
+    const dt = t1 - t0; // animationTimeStamp - performance.now
+    const t = (dt % dur) / dur; // 0 ~ 360
+
+    // console.log(t);
+    const rad = t * Math.PI;
+
+    this.object.rotation.x += 0.001 * Math.sin(rad * 3 - Math.PI * 2);
+    this.object.rotation.y += 0.001 * Math.sin(rad * 2 - Math.PI * 2);
+    this.object.rotation.z += 0.001 * Math.sin(rad * 0.3 - Math.PI * 2);
+    this.object.children[0].material.uniforms.uTime.value += t;
     this.composer.render();
   }
 
@@ -117,4 +122,4 @@ class ShaderController extends React.Component {
   }
 }
 
-export default ShaderController;
+export default Cat;

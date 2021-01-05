@@ -10,6 +10,7 @@ import {
   RepeatWrapping,
   Scene,
   ShaderMaterial,
+  Vector3,
   WebGLRenderer,
 } from "three";
 import vertex from "../public/glsl/textShader_vs.glsl";
@@ -21,7 +22,7 @@ import { GlitchPass } from "three/examples/jsm/postprocessing/GlitchPass";
 import loadGeometry from "../utils/loadGeometry";
 import loadObj from "../utils/loadObj";
 
-class TextShader extends React.Component {
+class ObjShader extends React.Component {
   constructor(props) {
     super(props);
     // this.onLoadCanvas = React.createRef();
@@ -46,13 +47,18 @@ class TextShader extends React.Component {
 
     this.material = new ShaderMaterial({
       wireframe: true,
+      uniforms: {
+        offset: {
+          value: new Vector3(1.0, 1.0, 1.0),
+        },
+      },
       vertexShader: vertex,
       fragmentShader: fragment,
     });
 
-    const mesh = new Mesh(geometry.O_Text, this.material);
+    this.mesh = new Mesh(geometry.O_Text, this.material);
 
-    this.scene.add(mesh);
+    this.scene.add(this.mesh);
     this.scene.add(this.camera);
     this.camera.position.z = 10;
 
@@ -76,6 +82,10 @@ class TextShader extends React.Component {
     requestAnimationFrame((t) => {
       this.animate(t);
     });
+
+    // this.mesh.material.uniforms.offset.value.x = Math.random();
+    // this.mesh.material.uniforms.offset.value.y = Math.random();
+    // this.mesh.material.uniforms.offset.value.z = Math.random();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -88,4 +98,4 @@ class TextShader extends React.Component {
   }
 }
 
-export default TextShader;
+export default ObjShader;
